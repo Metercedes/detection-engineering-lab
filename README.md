@@ -56,8 +56,8 @@ Coverage is 18 ATT&CK techniques across 8 tactics.
 
 ## How the evaluator works
 
-`sigmatch` implements the part of the Sigma specification these rules use, rather than depending
-on a converter, so rules can be tested without deploying them anywhere.
+`sigmatch` implements the part of the Sigma specification these rules use, so a rule can be tested
+without deploying it anywhere and without a converter in the loop.
 
 - **Field modifiers**: `contains`, `startswith`, `endswith`, `re`, `cidr`, `all`, `base64`,
   `base64offset`, `windash`, and the numeric comparisons.
@@ -103,7 +103,7 @@ That starts Elasticsearch and Kibana, exports the rules, and installs them throu
 engine API. Credentials are read from the environment; nothing authenticating is committed.
 
 Ten rules translate to KQL. Three use regular expressions, which KQL has no operator for, so they
-are emitted with `language: lucene` instead. The converter raises rather than silently producing a
+are emitted with `language: lucene` instead. The converter raises instead of silently producing a
 query that means something different from the rule.
 
 **This part has not been re-run recently.** The Compose stack and the Kibana deployment script came

@@ -1,0 +1,48 @@
+title: Autorun Registry Key Written With a Suspicious Payload
+id: 47f1a8b0-6d29-4c3e-b57a-0e91c4d6f8a3
+status: experimental
+description: >
+  Detects a value being written to a Run key where the payload points at a script interpreter or a
+  binary in a user-writable directory. Writing to Run keys is normal for installed software; the
+  combination with a scripting host or a temp path is not.
+references:
+  - https://attack.mitre.org/techniques/T1547/001/
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+logsource:
+  product: windows
+  category: registry_set
+detection:
+  selection_key:
+    registry.path|contains:
+      - \CurrentVersion\Run\
+      - \CurrentVersion\RunOnce\
+      - \CurrentVersion\Explorer\Shell Folders\Startup
+  selection_payload:
+    registry.data.strings|contains:
+      - powershell
+      - wscript
+      - cscript
+      - mshta
+      - rundll32
+      - \AppData\Local\Temp\
+      - \Users\Public\
+      - \ProgramData\
+  condition: selection_key and selection_payload
+fields:
+  - registry.path
+  - registry.data.strings
+  - process.name
+  - user.name
+investigation:
+  - Resolve the target binary and check its signature and creation time.
+  - Determine which process wrote the value and what started that process.
+  - Check whether the same value name appears on other hosts.
+  - Legitimate installers write Run keys; the writing process being a script host is the discriminator.
+falsepositives:
+  - Installers that place updater shims under ProgramData. Confirm the publisher of the target
+    binary before escalating.
+level: medium
+tags:
+  - attack.persistence
+  - attack.t1547.001

@@ -1,0 +1,48 @@
+title: Service Creation Consistent With Remote Execution Tooling
+id: 9a4f0b6d-51c8-4e77-a2b9-6f3c81d40e5a
+status: experimental
+description: >
+  Detects Windows service installation events whose service name or image path matches remote
+  execution utilities. PsExec and its reimplementations work by writing a service binary to ADMIN$
+  and registering it, so the service installation event is the durable artefact.
+references:
+  - https://attack.mitre.org/techniques/T1569/002/
+  - https://attack.mitre.org/techniques/T1021/002/
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+logsource:
+  product: windows
+  service: system
+detection:
+  selection_event:
+    event.code: '7045'
+  selection_indicator:
+    - service.name|contains:
+        - PSEXESVC
+        - PAExec
+        - RemComSvc
+        - CSExec
+    - file.path|contains:
+        - \PSEXESVC.exe
+        - \paexec
+        - \RemComSvc.exe
+  condition: selection_event and selection_indicator
+fields:
+  - service.name
+  - file.path
+  - user.name
+  - host.name
+investigation:
+  - Identify the account that installed the service and the source host it authenticated from (Security 4624, logon type 3).
+  - Check whether the same service name appears on other hosts in the same window, which indicates lateral movement.
+  - Confirm whether an administrator was performing sanctioned remote work at that time.
+  - Preserve the service binary before it is deleted; PsExec removes it on disconnect.
+falsepositives:
+  - Administrators who use PsExec as a sanctioned remote administration tool. Where that is the
+    case, scope the rule to source hosts outside the administrative subnet.
+level: high
+tags:
+  - attack.execution
+  - attack.t1569.002
+  - attack.lateral_movement
+  - attack.t1021.002

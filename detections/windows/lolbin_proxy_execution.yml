@@ -1,0 +1,51 @@
+title: Signed Binary Proxy Execution via rundll32 or regsvr32
+id: 5b3d70c1-9e42-4a8f-b6d5-3c07e91a2f48
+status: experimental
+description: >
+  Detects rundll32 or regsvr32 executing content from a remote location or from a user-writable
+  path. Both are Microsoft-signed and allowed by most application control policies, which is
+  exactly why they are used to run attacker code.
+references:
+  - https://attack.mitre.org/techniques/T1218/011/
+  - https://attack.mitre.org/techniques/T1218/010/
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_image:
+    process.name:
+      - rundll32.exe
+      - regsvr32.exe
+  selection_remote:
+    process.command_line|contains:
+      - 'http://'
+      - 'https://'
+      - '\\\\'
+      - scrobj.dll
+      - javascript:
+      - vbscript:
+  selection_writable_path:
+    process.command_line|contains:
+      - \AppData\Local\Temp\
+      - \Users\Public\
+      - \Downloads\
+  condition: selection_image and (selection_remote or selection_writable_path)
+fields:
+  - process.command_line
+  - process.parent.name
+  - user.name
+investigation:
+  - Extract the URL or file path being loaded and inspect the content.
+  - Check the parent process, since a browser or Office parent changes the assessment.
+  - Look for application control logs that would have recorded the same execution.
+  - Confirm whether the loaded DLL or scriptlet is a known enterprise component.
+falsepositives:
+  - Some enterprise software registers COM objects from ProgramData during install. Scope by
+    parent process where that occurs.
+level: high
+tags:
+  - attack.defense_evasion
+  - attack.t1218.011
+  - attack.t1218.010

@@ -1,0 +1,85 @@
+title: Failed Windows Logon
+id: 1a7b3c5d-9e02-4f68-b134-8c50a2d97e6b
+status: experimental
+description: >
+  Base rule matching a single failed interactive or network logon. It is not intended to alert on
+  its own; the correlation rule below applies the threshold.
+references:
+  - https://attack.mitre.org/techniques/T1110/
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    event.code: '4625'
+  condition: selection
+fields:
+  - user.name
+  - source.ip
+  - host.name
+investigation:
+  - Determine whether all failures share one source address and one logon type.
+  - Check whether the account eventually authenticated successfully, which converts this into a compromise investigation.
+  - For a single source and single account, a stale cached credential is the most common benign cause.
+  - For many accounts from one source, treat as spraying and check which accounts succeeded.
+falsepositives:
+  - Expired passwords and stale saved credentials on service accounts.
+level: informational
+tags:
+  - attack.credential_access
+  - attack.t1110
+---
+title: Failed Logon Burst Against a Single Account
+id: e4d81f60-2c93-4a75-b8e1-06f3a95c7d24
+status: experimental
+description: >
+  Ten or more failed logons for one account within five minutes. This is the shape of password
+  guessing against a known user, as distinct from spraying, which is covered separately because it
+  is wide rather than deep and would stay under this threshold.
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+correlation:
+  type: event_count
+  rules:
+    - 1a7b3c5d-9e02-4f68-b134-8c50a2d97e6b
+  group-by:
+    - user.name
+  timespan: 5m
+  condition:
+    gte: 10
+falsepositives:
+  - A user with a cached credential on a phone or mapped drive after a password change. Check
+    whether all failures share one source address and one logon type.
+level: high
+tags:
+  - attack.credential_access
+  - attack.t1110.001
+---
+title: Password Spraying Across Multiple Accounts
+id: 7b2f4e91-5d38-4c06-9a17-3e80b6f2c541
+status: experimental
+description: >
+  A single source address failing to authenticate against ten or more distinct accounts within
+  fifteen minutes. Spraying stays below per-account lockout thresholds by trying one or two
+  passwords against many users, so the distinguishing feature is breadth from one origin.
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+correlation:
+  type: value_count
+  rules:
+    - 1a7b3c5d-9e02-4f68-b134-8c50a2d97e6b
+  group-by:
+    - source.ip
+  timespan: 15m
+  field: user.name
+  condition:
+    gte: 10
+falsepositives:
+  - A misconfigured application server or NAT gateway presenting many users from one address.
+    Confirm whether the source is a shared egress point before treating it as an attacker.
+level: high
+tags:
+  - attack.credential_access
+  - attack.t1110.003

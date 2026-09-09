@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check .
+      - name: Format check
+        run: ruff format --check .
+      - name: Tests
+        run: pytest -q
+      - name: Rule metadata validation
+        run: sigmatch validate
+      - name: ATT&CK coverage
+        run: sigmatch coverage >> "$GITHUB_STEP_SUMMARY"
+
+  generated-artifacts-are-current:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: pip install -e ".[dev]"
+      - name: Regenerate corpus, Elastic rules and catalogue
+        run: |
+          python scripts/generate_telemetry.py
+          python scripts/export_elastic_rules.py
+          python scripts/generate_docs.py
+      - name: Fail if regeneration changed anything
+        run: git diff --exit-code

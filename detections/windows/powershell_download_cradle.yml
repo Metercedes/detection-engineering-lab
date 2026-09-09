@@ -1,0 +1,54 @@
+title: PowerShell Download Cradle
+id: b81d47a2-90ce-4b23-8f1a-77c0e6d4a9b2
+status: experimental
+description: >
+  Detects a PowerShell command line that both retrieves remote content and executes it in memory.
+  The pairing matters: a download alone is ordinary, and Invoke-Expression alone is ordinary, but
+  together they are the standard shape of a staged payload that never touches disk.
+references:
+  - https://attack.mitre.org/techniques/T1059/001/
+  - https://attack.mitre.org/techniques/T1105/
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_image:
+    process.name:
+      - powershell.exe
+      - pwsh.exe
+  selection_download:
+    process.command_line|contains:
+      - DownloadString
+      - DownloadFile
+      - DownloadData
+      - Invoke-WebRequest
+      - Net.WebClient
+      - iwr
+      - curl
+  selection_execute:
+    process.command_line|contains:
+      - 'IEX'
+      - 'Invoke-Expression'
+      - '| iex'
+      - 'Start-Process'
+  condition: selection_image and selection_download and selection_execute
+fields:
+  - process.command_line
+  - process.parent.name
+  - user.name
+investigation:
+  - Extract the URL and check its reputation and first-seen date. Newly registered domains are a strong signal.
+  - Look for the fetched content on disk or in the PowerShell operational log (Event ID 4104 records script blocks).
+  - Check outbound connections from the host around the event timestamp for the same destination.
+  - If the URL is an internal artefact repository, this is likely a deployment script; confirm with the owning team.
+falsepositives:
+  - Package bootstrap scripts such as the Chocolatey installer follow exactly this pattern.
+    Allow-list by the specific URL host rather than by the technique.
+level: high
+tags:
+  - attack.execution
+  - attack.t1059.001
+  - attack.command_and_control
+  - attack.t1105

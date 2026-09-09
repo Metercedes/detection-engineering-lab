@@ -1,0 +1,65 @@
+{
+  "author": [
+    "Kamil Mete Yalcinkaya"
+  ],
+  "description": "Detects schtasks.exe creating a task. Scheduled tasks are a common persistence mechanism because they survive reboot and run without an interactive session. The signal is weak on its own, so the rule records the parent process to support triage rather than to justify an alert by itself.",
+  "enabled": true,
+  "false_positives": [
+    "Software installers routinely register update tasks. Expect a high base rate and triage on the task action rather than on the creation event alone."
+  ],
+  "from": "now-10m",
+  "index": [
+    "logs-*",
+    "winlogbeat-*"
+  ],
+  "interval": "5m",
+  "language": "kuery",
+  "name": "Scheduled Task Created From a Command Shell",
+  "note": "Investigation fields: process.command_line, process.parent.name, user.name",
+  "query": "((process.name : \"schtasks.exe\" and process.command_line : \"*/create*\") and not user.name : \"*$\")",
+  "references": [
+    "https://attack.mitre.org/techniques/T1053/005/"
+  ],
+  "risk_score": 47,
+  "rule_id": "d70b3e29-8c14-4a6f-95d2-1e8a37b0c94f",
+  "severity": "medium",
+  "tags": [
+    "sigma:scheduled_task_persistence",
+    "attack.persistence",
+    "attack.t1053.005",
+    "attack.execution"
+  ],
+  "threat": [
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0002",
+        "name": "Execution",
+        "reference": "https://attack.mitre.org/tactics/TA0002/"
+      },
+      "technique": [
+        {
+          "id": "T1053.005",
+          "name": "T1053.005",
+          "reference": "https://attack.mitre.org/techniques/T1053/005/"
+        }
+      ]
+    },
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0003",
+        "name": "Persistence",
+        "reference": "https://attack.mitre.org/tactics/TA0003/"
+      },
+      "technique": [
+        {
+          "id": "T1053.005",
+          "name": "T1053.005",
+          "reference": "https://attack.mitre.org/techniques/T1053/005/"
+        }
+      ]
+    }
+  ],
+  "type": "query"
+}

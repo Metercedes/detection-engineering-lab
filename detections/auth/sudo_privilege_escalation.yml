@@ -1,0 +1,38 @@
+title: Sudo Invocation of a Shell or Interpreter
+id: f60a9c14-8b37-4e2d-a951-7c04d38f1b6a
+status: experimental
+description: >
+  Detects sudo being used to launch an interactive shell or a language interpreter. Both give an
+  unrestricted root session, which defeats the point of granting narrow sudo rules, and is the
+  usual outcome of exploiting a permissive sudoers entry.
+references:
+  - https://attack.mitre.org/techniques/T1548/003/
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+logsource:
+  product: linux
+  category: process_creation
+detection:
+  selection:
+    process.name: sudo
+    process.command_line|re: '\bsudo\s+(-\w+\s+)*(/bin/|/usr/bin/)?(ba|z|k|da)?sh\b|\bsudo\s+(-\w+\s+)*(python[0-9.]*|perl|ruby|lua)\b'
+  filter_maintenance:
+    user.name:
+      - root
+  condition: selection and not filter_maintenance
+fields:
+  - process.command_line
+  - user.name
+  - host.name
+investigation:
+  - Check the sudoers entry that permitted this, since a narrow rule being used to spawn a shell suggests a misconfiguration.
+  - Review the commands executed in the resulting root session.
+  - Confirm whether the account is expected to hold administrative rights.
+  - Where sudo is scoped intentionally, treat repeated occurrences as a policy gap rather than an attack.
+falsepositives:
+  - Administrators who legitimately hold full sudo rights. The rule is most useful where sudo is
+    scoped to specific commands.
+level: medium
+tags:
+  - attack.privilege_escalation
+  - attack.t1548.003

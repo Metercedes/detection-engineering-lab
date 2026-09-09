@@ -1,0 +1,65 @@
+{
+  "author": [
+    "Kamil Mete Yalcinkaya"
+  ],
+  "description": "Detects the recognisable one-liners that redirect a shell over a network socket, covering the bash /dev/tcp form, netcat with an execution flag, and the Python socket-to-pty pattern.",
+  "enabled": true,
+  "false_positives": [
+    "Authorised penetration tests and red-team exercises. Correlate with the engagement window."
+  ],
+  "from": "now-10m",
+  "index": [
+    "logs-*",
+    "winlogbeat-*"
+  ],
+  "interval": "5m",
+  "language": "lucene",
+  "name": "Interactive Reverse Shell Invocation",
+  "note": "Investigation fields: process.command_line, process.parent.name, destination.ip, destination.port, user.name",
+  "query": "((process.command_line:*\\/dev\\/tcp\\/* OR process.command_line:*\\/dev\\/udp\\/*) OR process.command_line:/.*\\bn(c|cat|etcat)\\b.*\\s-[a-zA-Z]*e\\b.*/ OR ((process.command_line:*socket* AND process.command_line:*subprocess*) AND (process.command_line:*pty.spawn* OR process.command_line:*dup2*)))",
+  "references": [
+    "https://attack.mitre.org/techniques/T1059/004/"
+  ],
+  "risk_score": 99,
+  "rule_id": "c92e5a07-3f18-4d6b-8a24-5b71e0c3d94f",
+  "severity": "critical",
+  "tags": [
+    "sigma:reverse_shell_invocation",
+    "attack.execution",
+    "attack.t1059.004",
+    "attack.command_and_control"
+  ],
+  "threat": [
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0011",
+        "name": "Command and Control",
+        "reference": "https://attack.mitre.org/tactics/TA0011/"
+      },
+      "technique": [
+        {
+          "id": "T1059.004",
+          "name": "T1059.004",
+          "reference": "https://attack.mitre.org/techniques/T1059/004/"
+        }
+      ]
+    },
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0002",
+        "name": "Execution",
+        "reference": "https://attack.mitre.org/tactics/TA0002/"
+      },
+      "technique": [
+        {
+          "id": "T1059.004",
+          "name": "T1059.004",
+          "reference": "https://attack.mitre.org/techniques/T1059/004/"
+        }
+      ]
+    }
+  ],
+  "type": "query"
+}

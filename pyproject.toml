@@ -3,7 +3,7 @@ name = "sigmatch"
 version = "1.0.0"
 description = "Offline Sigma rule evaluator and detection validation harness"
 requires-python = ">=3.11"
-dependencies = ["PyYAML>=6.0"]
+dependencies = ["PyYAML>=6.0.3"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.6"]

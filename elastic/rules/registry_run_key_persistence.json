@@ -1,0 +1,49 @@
+{
+  "author": [
+    "Kamil Mete Yalcinkaya"
+  ],
+  "description": "Detects a value being written to a Run key where the payload points at a script interpreter or a binary in a user-writable directory. Writing to Run keys is normal for installed software; the combination with a scripting host or a temp path is not.",
+  "enabled": true,
+  "false_positives": [
+    "Installers that place updater shims under ProgramData. Confirm the publisher of the target binary before escalating."
+  ],
+  "from": "now-10m",
+  "index": [
+    "logs-*",
+    "winlogbeat-*"
+  ],
+  "interval": "5m",
+  "language": "kuery",
+  "name": "Autorun Registry Key Written With a Suspicious Payload",
+  "note": "Investigation fields: registry.path, registry.data.strings, process.name, user.name",
+  "query": "((registry.path : \"*\\\\CurrentVersion\\\\Run\\\\*\" or registry.path : \"*\\\\CurrentVersion\\\\RunOnce\\\\*\" or registry.path : \"*\\\\CurrentVersion\\\\Explorer\\\\Shell Folders\\\\Startup*\") and (registry.data.strings : \"*powershell*\" or registry.data.strings : \"*wscript*\" or registry.data.strings : \"*cscript*\" or registry.data.strings : \"*mshta*\" or registry.data.strings : \"*rundll32*\" or registry.data.strings : \"*\\\\AppData\\\\Local\\\\Temp\\\\*\" or registry.data.strings : \"*\\\\Users\\\\Public\\\\*\" or registry.data.strings : \"*\\\\ProgramData\\\\*\"))",
+  "references": [
+    "https://attack.mitre.org/techniques/T1547/001/"
+  ],
+  "risk_score": 47,
+  "rule_id": "47f1a8b0-6d29-4c3e-b57a-0e91c4d6f8a3",
+  "severity": "medium",
+  "tags": [
+    "sigma:registry_run_key_persistence",
+    "attack.persistence",
+    "attack.t1547.001"
+  ],
+  "threat": [
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0003",
+        "name": "Persistence",
+        "reference": "https://attack.mitre.org/tactics/TA0003/"
+      },
+      "technique": [
+        {
+          "id": "T1547.001",
+          "name": "T1547.001",
+          "reference": "https://attack.mitre.org/techniques/T1547/001/"
+        }
+      ]
+    }
+  ],
+  "type": "query"
+}

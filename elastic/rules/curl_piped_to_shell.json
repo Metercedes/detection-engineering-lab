@@ -1,0 +1,77 @@
+{
+  "author": [
+    "Kamil Mete Yalcinkaya"
+  ],
+  "description": "Detects curl or wget output piped straight into a shell. Nothing is written to disk for a scanner to inspect, and the fetched content is executed with the caller's privileges, so this is a common first-stage installer for Linux implants and cryptominers.",
+  "enabled": true,
+  "false_positives": [
+    "Documented installation instructions for developer tooling use this pattern. On a server outside a build pipeline it should be rare enough to alert on."
+  ],
+  "from": "now-10m",
+  "index": [
+    "logs-*",
+    "winlogbeat-*"
+  ],
+  "interval": "5m",
+  "language": "lucene",
+  "name": "Remote Script Downloaded and Piped Directly to a Shell",
+  "note": "Investigation fields: process.command_line, process.parent.name, user.name, host.name",
+  "query": "((process.command_line:*curl* OR process.command_line:*wget*) AND process.command_line:/.*\\|\\s*(sudo\\s+)?(ba|z|k|da)?sh\\b.*/)",
+  "references": [
+    "https://attack.mitre.org/techniques/T1059/004/",
+    "https://attack.mitre.org/techniques/T1105/"
+  ],
+  "risk_score": 73,
+  "rule_id": "8d1c46f9-2b73-4e05-a19c-7f60d3b8e254",
+  "severity": "high",
+  "tags": [
+    "sigma:curl_piped_to_shell",
+    "attack.execution",
+    "attack.t1059.004",
+    "attack.command_and_control",
+    "attack.t1105"
+  ],
+  "threat": [
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0011",
+        "name": "Command and Control",
+        "reference": "https://attack.mitre.org/tactics/TA0011/"
+      },
+      "technique": [
+        {
+          "id": "T1059.004",
+          "name": "T1059.004",
+          "reference": "https://attack.mitre.org/techniques/T1059/004/"
+        },
+        {
+          "id": "T1105",
+          "name": "T1105",
+          "reference": "https://attack.mitre.org/techniques/T1105/"
+        }
+      ]
+    },
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0002",
+        "name": "Execution",
+        "reference": "https://attack.mitre.org/tactics/TA0002/"
+      },
+      "technique": [
+        {
+          "id": "T1059.004",
+          "name": "T1059.004",
+          "reference": "https://attack.mitre.org/techniques/T1059/004/"
+        },
+        {
+          "id": "T1105",
+          "name": "T1105",
+          "reference": "https://attack.mitre.org/techniques/T1105/"
+        }
+      ]
+    }
+  ],
+  "type": "query"
+}

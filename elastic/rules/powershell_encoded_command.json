@@ -1,0 +1,77 @@
+{
+  "author": [
+    "Kamil Mete Yalcinkaya"
+  ],
+  "description": "Detects powershell.exe invoked with an encoded command payload. Encoding is used to keep the real command out of the command line that defenders and logging see, and is common in loaders delivered by phishing documents.",
+  "enabled": true,
+  "false_positives": [
+    "Configuration management and deployment tooling that wraps PowerShell payloads, notably SCCM and some backup agents. Baseline the parent process before alerting."
+  ],
+  "from": "now-10m",
+  "index": [
+    "logs-*",
+    "winlogbeat-*"
+  ],
+  "interval": "5m",
+  "language": "kuery",
+  "name": "PowerShell Encoded Command Execution",
+  "note": "Investigation fields: process.command_line, process.parent.name, user.name, host.name",
+  "query": "((process.name : \"powershell.exe\" or process.name : \"pwsh.exe\" or process.executable : \"*\\\\powershell.exe\") and (process.command_line : \"* -enc *\" or process.command_line : \"* -encodedcommand*\" or process.command_line : \"* -e *\" or process.command_line : \"* -ec *\"))",
+  "references": [
+    "https://attack.mitre.org/techniques/T1059/001/",
+    "https://attack.mitre.org/techniques/T1027/"
+  ],
+  "risk_score": 73,
+  "rule_id": "6f2a1c94-3d4b-4a1e-9f7c-2b8e5d10a331",
+  "severity": "high",
+  "tags": [
+    "sigma:powershell_encoded_command",
+    "attack.execution",
+    "attack.t1059.001",
+    "attack.defense_evasion",
+    "attack.t1027"
+  ],
+  "threat": [
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0005",
+        "name": "Defense Evasion",
+        "reference": "https://attack.mitre.org/tactics/TA0005/"
+      },
+      "technique": [
+        {
+          "id": "T1027",
+          "name": "T1027",
+          "reference": "https://attack.mitre.org/techniques/T1027/"
+        },
+        {
+          "id": "T1059.001",
+          "name": "T1059.001",
+          "reference": "https://attack.mitre.org/techniques/T1059/001/"
+        }
+      ]
+    },
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0002",
+        "name": "Execution",
+        "reference": "https://attack.mitre.org/tactics/TA0002/"
+      },
+      "technique": [
+        {
+          "id": "T1027",
+          "name": "T1027",
+          "reference": "https://attack.mitre.org/techniques/T1027/"
+        },
+        {
+          "id": "T1059.001",
+          "name": "T1059.001",
+          "reference": "https://attack.mitre.org/techniques/T1059/001/"
+        }
+      ]
+    }
+  ],
+  "type": "query"
+}

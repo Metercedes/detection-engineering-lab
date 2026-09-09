@@ -1,0 +1,49 @@
+{
+  "author": [
+    "Kamil Mete Yalcinkaya"
+  ],
+  "description": "Detects sudo being used to launch an interactive shell or a language interpreter. Both give an unrestricted root session, which defeats the point of granting narrow sudo rules, and is the usual outcome of exploiting a permissive sudoers entry.",
+  "enabled": true,
+  "false_positives": [
+    "Administrators who legitimately hold full sudo rights. The rule is most useful where sudo is scoped to specific commands."
+  ],
+  "from": "now-10m",
+  "index": [
+    "logs-*",
+    "winlogbeat-*"
+  ],
+  "interval": "5m",
+  "language": "lucene",
+  "name": "Sudo Invocation of a Shell or Interpreter",
+  "note": "Investigation fields: process.command_line, user.name, host.name",
+  "query": "((process.name:\"sudo\" AND process.command_line:/.*\\bsudo\\s+(-\\w+\\s+)*(\\/bin\\/|\\/usr\\/bin\\/)?(ba|z|k|da)?sh\\b|\\bsudo\\s+(-\\w+\\s+)*(python[0-9.]*|perl|ruby|lua)\\b.*/) AND NOT user.name:\"root\")",
+  "references": [
+    "https://attack.mitre.org/techniques/T1548/003/"
+  ],
+  "risk_score": 47,
+  "rule_id": "f60a9c14-8b37-4e2d-a951-7c04d38f1b6a",
+  "severity": "medium",
+  "tags": [
+    "sigma:sudo_privilege_escalation",
+    "attack.privilege_escalation",
+    "attack.t1548.003"
+  ],
+  "threat": [
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0004",
+        "name": "Privilege Escalation",
+        "reference": "https://attack.mitre.org/tactics/TA0004/"
+      },
+      "technique": [
+        {
+          "id": "T1548.003",
+          "name": "T1548.003",
+          "reference": "https://attack.mitre.org/techniques/T1548/003/"
+        }
+      ]
+    }
+  ],
+  "type": "query"
+}

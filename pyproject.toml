@@ -1,0 +1,33 @@
+[project]
+name = "sigmatch"
+version = "1.0.0"
+description = "Offline Sigma rule evaluator and detection validation harness"
+requires-python = ">=3.11"
+dependencies = ["PyYAML>=6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+sigmatch = "sigmatch.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["sigmatch"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "RET", "PTH"]
+
+[tool.ruff.lint.per-file-ignores]
+# Fixtures reproduce real attacker command lines; wrapping them would change the data.
+"scripts/generate_telemetry.py" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

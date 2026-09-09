@@ -1,0 +1,49 @@
+{
+  "author": [
+    "Kamil Mete Yalcinkaya"
+  ],
+  "description": "Detects a cron entry being created that invokes a network client or an interpreter. Package managers install cron jobs too, so the payload rather than the write is what makes this interesting.",
+  "enabled": true,
+  "false_positives": [
+    "Configuration management such as Ansible or Puppet writing cron entries. Filter on the parent process of the automation agent."
+  ],
+  "from": "now-10m",
+  "index": [
+    "logs-*",
+    "winlogbeat-*"
+  ],
+  "interval": "5m",
+  "language": "kuery",
+  "name": "Cron Persistence Written Outside Package Management",
+  "note": "Investigation fields: process.command_line, process.parent.name, user.name",
+  "query": "((process.command_line : \"*crontab -*\" or process.command_line : \"*/etc/cron.d/*\" or process.command_line : \"*/var/spool/cron/*\") and (process.command_line : \"*curl*\" or process.command_line : \"*wget*\" or process.command_line : \"*/dev/tcp/*\" or process.command_line : \"*base64*\" or process.command_line : \"*python*\" or process.command_line : \"*perl*\" or process.command_line : \"*bash -i*\") and not (process.parent.name : \"dpkg\" or process.parent.name : \"apt\" or process.parent.name : \"rpm\" or process.parent.name : \"yum\" or process.parent.name : \"dnf\"))",
+  "references": [
+    "https://attack.mitre.org/techniques/T1053/003/"
+  ],
+  "risk_score": 47,
+  "rule_id": "a13f7d52-6e08-4b91-9c47-2d85f0a6b3e1",
+  "severity": "medium",
+  "tags": [
+    "sigma:cron_persistence",
+    "attack.persistence",
+    "attack.t1053.003"
+  ],
+  "threat": [
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0003",
+        "name": "Persistence",
+        "reference": "https://attack.mitre.org/tactics/TA0003/"
+      },
+      "technique": [
+        {
+          "id": "T1053.003",
+          "name": "T1053.003",
+          "reference": "https://attack.mitre.org/techniques/T1053/003/"
+        }
+      ]
+    }
+  ],
+  "type": "query"
+}

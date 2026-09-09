@@ -1,0 +1,49 @@
+{
+  "author": [
+    "Kamil Mete Yalcinkaya"
+  ],
+  "description": "Base rule matching a single failed interactive or network logon. It is not intended to alert on its own; the correlation rule below applies the threshold.",
+  "enabled": true,
+  "false_positives": [
+    "Expired passwords and stale saved credentials on service accounts."
+  ],
+  "from": "now-10m",
+  "index": [
+    "logs-*",
+    "winlogbeat-*"
+  ],
+  "interval": "5m",
+  "language": "kuery",
+  "name": "Failed Windows Logon",
+  "note": "Investigation fields: user.name, source.ip, host.name",
+  "query": "event.code : \"4625\"",
+  "references": [
+    "https://attack.mitre.org/techniques/T1110/"
+  ],
+  "risk_score": 1,
+  "rule_id": "1a7b3c5d-9e02-4f68-b134-8c50a2d97e6b",
+  "severity": "low",
+  "tags": [
+    "sigma:failed_logon_burst",
+    "attack.credential_access",
+    "attack.t1110"
+  ],
+  "threat": [
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0006",
+        "name": "Credential Access",
+        "reference": "https://attack.mitre.org/tactics/TA0006/"
+      },
+      "technique": [
+        {
+          "id": "T1110",
+          "name": "T1110",
+          "reference": "https://attack.mitre.org/techniques/T1110/"
+        }
+      ]
+    }
+  ],
+  "type": "query"
+}

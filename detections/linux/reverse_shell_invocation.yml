@@ -1,0 +1,47 @@
+title: Interactive Reverse Shell Invocation
+id: c92e5a07-3f18-4d6b-8a24-5b71e0c3d94f
+status: experimental
+description: >
+  Detects the recognisable one-liners that redirect a shell over a network socket, covering the
+  bash /dev/tcp form, netcat with an execution flag, and the Python socket-to-pty pattern.
+references:
+  - https://attack.mitre.org/techniques/T1059/004/
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+logsource:
+  product: linux
+  category: process_creation
+detection:
+  selection_devtcp:
+    process.command_line|contains:
+      - '/dev/tcp/'
+      - '/dev/udp/'
+  selection_netcat:
+    process.command_line|re: '\bn(c|cat|etcat)\b.*\s-[a-zA-Z]*e\b'
+  selection_python:
+    process.command_line|contains|all:
+      - 'socket'
+      - 'subprocess'
+  selection_python_shell:
+    process.command_line|contains:
+      - 'pty.spawn'
+      - 'dup2'
+  condition: selection_devtcp or selection_netcat or (selection_python and selection_python_shell)
+fields:
+  - process.command_line
+  - process.parent.name
+  - destination.ip
+  - destination.port
+  - user.name
+investigation:
+  - Identify the destination address and port and block it if the connection is still open.
+  - Determine the parent process, which usually reveals the initial access vector such as a web shell.
+  - Check for a listening or established socket from the same PID.
+  - Confirm against any authorised penetration test window before containment.
+falsepositives:
+  - Authorised penetration tests and red-team exercises. Correlate with the engagement window.
+level: critical
+tags:
+  - attack.execution
+  - attack.t1059.004
+  - attack.command_and_control

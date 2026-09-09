@@ -1,0 +1,77 @@
+{
+  "author": [
+    "Kamil Mete Yalcinkaya"
+  ],
+  "description": "Detects a PowerShell command line that both retrieves remote content and executes it in memory. The pairing matters: a download alone is ordinary, and Invoke-Expression alone is ordinary, but together they are the standard shape of a staged payload that never touches disk.",
+  "enabled": true,
+  "false_positives": [
+    "Package bootstrap scripts such as the Chocolatey installer follow exactly this pattern. Allow-list by the specific URL host rather than by the technique."
+  ],
+  "from": "now-10m",
+  "index": [
+    "logs-*",
+    "winlogbeat-*"
+  ],
+  "interval": "5m",
+  "language": "kuery",
+  "name": "PowerShell Download Cradle",
+  "note": "Investigation fields: process.command_line, process.parent.name, user.name",
+  "query": "((process.name : \"powershell.exe\" or process.name : \"pwsh.exe\") and (process.command_line : \"*DownloadString*\" or process.command_line : \"*DownloadFile*\" or process.command_line : \"*DownloadData*\" or process.command_line : \"*Invoke-WebRequest*\" or process.command_line : \"*Net.WebClient*\" or process.command_line : \"*iwr*\" or process.command_line : \"*curl*\") and (process.command_line : \"*IEX*\" or process.command_line : \"*Invoke-Expression*\" or process.command_line : \"*| iex*\" or process.command_line : \"*Start-Process*\"))",
+  "references": [
+    "https://attack.mitre.org/techniques/T1059/001/",
+    "https://attack.mitre.org/techniques/T1105/"
+  ],
+  "risk_score": 73,
+  "rule_id": "b81d47a2-90ce-4b23-8f1a-77c0e6d4a9b2",
+  "severity": "high",
+  "tags": [
+    "sigma:powershell_download_cradle",
+    "attack.execution",
+    "attack.t1059.001",
+    "attack.command_and_control",
+    "attack.t1105"
+  ],
+  "threat": [
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0011",
+        "name": "Command and Control",
+        "reference": "https://attack.mitre.org/tactics/TA0011/"
+      },
+      "technique": [
+        {
+          "id": "T1059.001",
+          "name": "T1059.001",
+          "reference": "https://attack.mitre.org/techniques/T1059/001/"
+        },
+        {
+          "id": "T1105",
+          "name": "T1105",
+          "reference": "https://attack.mitre.org/techniques/T1105/"
+        }
+      ]
+    },
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0002",
+        "name": "Execution",
+        "reference": "https://attack.mitre.org/tactics/TA0002/"
+      },
+      "technique": [
+        {
+          "id": "T1059.001",
+          "name": "T1059.001",
+          "reference": "https://attack.mitre.org/techniques/T1059/001/"
+        },
+        {
+          "id": "T1105",
+          "name": "T1105",
+          "reference": "https://attack.mitre.org/techniques/T1105/"
+        }
+      ]
+    }
+  ],
+  "type": "query"
+}

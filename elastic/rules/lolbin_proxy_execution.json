@@ -1,0 +1,56 @@
+{
+  "author": [
+    "Kamil Mete Yalcinkaya"
+  ],
+  "description": "Detects rundll32 or regsvr32 executing content from a remote location or from a user-writable path. Both are Microsoft-signed and allowed by most application control policies, which is exactly why they are used to run attacker code.",
+  "enabled": true,
+  "false_positives": [
+    "Some enterprise software registers COM objects from ProgramData during install. Scope by parent process where that occurs."
+  ],
+  "from": "now-10m",
+  "index": [
+    "logs-*",
+    "winlogbeat-*"
+  ],
+  "interval": "5m",
+  "language": "kuery",
+  "name": "Signed Binary Proxy Execution via rundll32 or regsvr32",
+  "note": "Investigation fields: process.command_line, process.parent.name, user.name",
+  "query": "((process.name : \"rundll32.exe\" or process.name : \"regsvr32.exe\") and ((process.command_line : \"*http://*\" or process.command_line : \"*https://*\" or process.command_line : \"*\\\\\\\\\\\\\\\\*\" or process.command_line : \"*scrobj.dll*\" or process.command_line : \"*{'javascript': None}*\" or process.command_line : \"*{'vbscript': None}*\") or (process.command_line : \"*\\\\AppData\\\\Local\\\\Temp\\\\*\" or process.command_line : \"*\\\\Users\\\\Public\\\\*\" or process.command_line : \"*\\\\Downloads\\\\*\")))",
+  "references": [
+    "https://attack.mitre.org/techniques/T1218/011/",
+    "https://attack.mitre.org/techniques/T1218/010/"
+  ],
+  "risk_score": 73,
+  "rule_id": "5b3d70c1-9e42-4a8f-b6d5-3c07e91a2f48",
+  "severity": "high",
+  "tags": [
+    "sigma:lolbin_proxy_execution",
+    "attack.defense_evasion",
+    "attack.t1218.011",
+    "attack.t1218.010"
+  ],
+  "threat": [
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0005",
+        "name": "Defense Evasion",
+        "reference": "https://attack.mitre.org/tactics/TA0005/"
+      },
+      "technique": [
+        {
+          "id": "T1218.010",
+          "name": "T1218.010",
+          "reference": "https://attack.mitre.org/techniques/T1218/010/"
+        },
+        {
+          "id": "T1218.011",
+          "name": "T1218.011",
+          "reference": "https://attack.mitre.org/techniques/T1218/011/"
+        }
+      ]
+    }
+  ],
+  "type": "query"
+}

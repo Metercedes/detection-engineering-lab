@@ -1,0 +1,39 @@
+title: Scheduled Task Created From a Command Shell
+id: d70b3e29-8c14-4a6f-95d2-1e8a37b0c94f
+status: experimental
+description: >
+  Detects schtasks.exe creating a task. Scheduled tasks are a common persistence mechanism because
+  they survive reboot and run without an interactive session. The signal is weak on its own, so
+  the rule records the parent process to support triage rather than to justify an alert by itself.
+references:
+  - https://attack.mitre.org/techniques/T1053/005/
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection:
+    process.name: schtasks.exe
+    process.command_line|contains: '/create'
+  filter_system_context:
+    user.name|endswith:
+      - $
+  condition: selection and not filter_system_context
+fields:
+  - process.command_line
+  - process.parent.name
+  - user.name
+investigation:
+  - Read the task action. The action, not the task creation, determines whether this matters.
+  - Check the task author and whether the binary it runs is signed.
+  - Look for a matching task on other hosts.
+  - Compare against the software deployment schedule before escalating.
+falsepositives:
+  - Software installers routinely register update tasks. Expect a high base rate and triage on the
+    task action rather than on the creation event alone.
+level: medium
+tags:
+  - attack.persistence
+  - attack.t1053.005
+  - attack.execution

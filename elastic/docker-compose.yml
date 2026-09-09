@@ -1,0 +1,43 @@
+name: detection-lab
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.4.2
+    container_name: detection-lab-es
+    environment:
+      - node.name=es01
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?set ELASTIC_PASSWORD in .env}
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=false
+      - xpack.license.self_generated.type=basic
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -u elastic:${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"'"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.4.2
+    container_name: detection-lab-kibana
+    depends_on:
+      elasticsearch: { condition: service_healthy }
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD:?set KIBANA_PASSWORD in .env}
+      - XPACK_SECURITY_ENCRYPTIONKEY=${KIBANA_ENCRYPTION_KEY:?set KIBANA_ENCRYPTION_KEY in .env}
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${KIBANA_ENCRYPTION_KEY}
+      - XPACK_REPORTING_ENCRYPTIONKEY=${KIBANA_ENCRYPTION_KEY}
+    ports:
+      - "5601:5601"
+
+volumes:
+  es-data:

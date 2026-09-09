@@ -1,0 +1,53 @@
+title: Office Application Spawning a Script Interpreter
+id: 3c5e8f17-2a6d-4c90-b1e3-4d92f7c6a018
+status: experimental
+description: >
+  Detects a Microsoft Office process creating a command shell or script host. Office has no
+  legitimate reason to start these in most environments, and this parent-child pair is the usual
+  first observable step of a macro-enabled phishing document.
+references:
+  - https://attack.mitre.org/techniques/T1566/001/
+  - https://attack.mitre.org/techniques/T1204/002/
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_parent:
+    process.parent.name:
+      - winword.exe
+      - excel.exe
+      - powerpnt.exe
+      - outlook.exe
+      - msaccess.exe
+  selection_child:
+    process.name:
+      - cmd.exe
+      - powershell.exe
+      - pwsh.exe
+      - wscript.exe
+      - cscript.exe
+      - mshta.exe
+      - regsvr32.exe
+      - rundll32.exe
+  condition: selection_parent and selection_child
+fields:
+  - process.parent.name
+  - process.name
+  - process.command_line
+  - user.name
+investigation:
+  - Retrieve the originating document from the mail gateway or the user's Downloads and Temp directories.
+  - Check whether the document arrived by email, and whether other recipients received it.
+  - Inspect the child command line for a download or persistence step.
+  - Treat a confirmed macro execution as a contained-host incident rather than a single-alert triage.
+falsepositives:
+  - Line-of-business Office add-ins and document templates that shell out. These are rare and
+    worth enumerating once rather than suppressing the rule.
+level: high
+tags:
+  - attack.initial_access
+  - attack.t1566.001
+  - attack.execution
+  - attack.t1204.002

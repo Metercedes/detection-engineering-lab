@@ -1,0 +1,28 @@
+# Standalone Elastic Agent input for replaying the repository's telemetry corpus into the
+# lab cluster. Point Agent at a checkout and it ships telemetry/**/*.jsonl as ECS documents.
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["http://localhost:9200"]
+    username: "${ELASTIC_USERNAME}"
+    password: "${ELASTIC_PASSWORD}"
+
+inputs:
+  - id: detection-lab-corpus
+    type: filestream
+    data_stream:
+      namespace: detectionlab
+    streams:
+      - id: corpus-jsonl
+        data_stream:
+          dataset: detectionlab.corpus
+          type: logs
+        paths:
+          - ${LAB_ROOT}/telemetry/true_positive/*.jsonl
+          - ${LAB_ROOT}/telemetry/benign/*.jsonl
+        parsers:
+          - ndjson:
+              target: ""
+              overwrite_keys: true
+              add_error_key: true
+              expand_keys: true

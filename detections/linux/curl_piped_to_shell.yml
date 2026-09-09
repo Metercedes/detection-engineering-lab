@@ -1,0 +1,42 @@
+title: Remote Script Downloaded and Piped Directly to a Shell
+id: 8d1c46f9-2b73-4e05-a19c-7f60d3b8e254
+status: experimental
+description: >
+  Detects curl or wget output piped straight into a shell. Nothing is written to disk for a
+  scanner to inspect, and the fetched content is executed with the caller's privileges, so this is
+  a common first-stage installer for Linux implants and cryptominers.
+references:
+  - https://attack.mitre.org/techniques/T1059/004/
+  - https://attack.mitre.org/techniques/T1105/
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+logsource:
+  product: linux
+  category: process_creation
+detection:
+  selection_fetch:
+    process.command_line|contains:
+      - curl
+      - wget
+  selection_pipe:
+    process.command_line|re: '\|\s*(sudo\s+)?(ba|z|k|da)?sh\b'
+  condition: selection_fetch and selection_pipe
+fields:
+  - process.command_line
+  - process.parent.name
+  - user.name
+  - host.name
+investigation:
+  - Retrieve the script from the URL in a sandbox rather than on the affected host.
+  - Check whether the host is a build agent, where this pattern is routine.
+  - Look for what the script installed: new services, cron entries, or listening sockets.
+  - Check outbound connections from the host after the event.
+falsepositives:
+  - Documented installation instructions for developer tooling use this pattern. On a server
+    outside a build pipeline it should be rare enough to alert on.
+level: high
+tags:
+  - attack.execution
+  - attack.t1059.004
+  - attack.command_and_control
+  - attack.t1105

@@ -1,0 +1,77 @@
+{
+  "author": [
+    "Kamil Mete Yalcinkaya"
+  ],
+  "description": "Detects Windows service installation events whose service name or image path matches remote execution utilities. PsExec and its reimplementations work by writing a service binary to ADMIN$ and registering it, so the service installation event is the durable artefact.",
+  "enabled": true,
+  "false_positives": [
+    "Administrators who use PsExec as a sanctioned remote administration tool. Where that is the case, scope the rule to source hosts outside the administrative subnet."
+  ],
+  "from": "now-10m",
+  "index": [
+    "logs-*",
+    "winlogbeat-*"
+  ],
+  "interval": "5m",
+  "language": "kuery",
+  "name": "Service Creation Consistent With Remote Execution Tooling",
+  "note": "Investigation fields: service.name, file.path, user.name, host.name",
+  "query": "(event.code : \"7045\" and ((service.name : \"*PSEXESVC*\" or service.name : \"*PAExec*\" or service.name : \"*RemComSvc*\" or service.name : \"*CSExec*\") or (file.path : \"*\\\\PSEXESVC.exe*\" or file.path : \"*\\\\paexec*\" or file.path : \"*\\\\RemComSvc.exe*\")))",
+  "references": [
+    "https://attack.mitre.org/techniques/T1569/002/",
+    "https://attack.mitre.org/techniques/T1021/002/"
+  ],
+  "risk_score": 73,
+  "rule_id": "9a4f0b6d-51c8-4e77-a2b9-6f3c81d40e5a",
+  "severity": "high",
+  "tags": [
+    "sigma:service_creation_remote_exec",
+    "attack.execution",
+    "attack.t1569.002",
+    "attack.lateral_movement",
+    "attack.t1021.002"
+  ],
+  "threat": [
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0002",
+        "name": "Execution",
+        "reference": "https://attack.mitre.org/tactics/TA0002/"
+      },
+      "technique": [
+        {
+          "id": "T1021.002",
+          "name": "T1021.002",
+          "reference": "https://attack.mitre.org/techniques/T1021/002/"
+        },
+        {
+          "id": "T1569.002",
+          "name": "T1569.002",
+          "reference": "https://attack.mitre.org/techniques/T1569/002/"
+        }
+      ]
+    },
+    {
+      "framework": "MITRE ATT&CK",
+      "tactic": {
+        "id": "TA0008",
+        "name": "Lateral Movement",
+        "reference": "https://attack.mitre.org/tactics/TA0008/"
+      },
+      "technique": [
+        {
+          "id": "T1021.002",
+          "name": "T1021.002",
+          "reference": "https://attack.mitre.org/techniques/T1021/002/"
+        },
+        {
+          "id": "T1569.002",
+          "name": "T1569.002",
+          "reference": "https://attack.mitre.org/techniques/T1569/002/"
+        }
+      ]
+    }
+  ],
+  "type": "query"
+}

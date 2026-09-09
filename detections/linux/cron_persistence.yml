@@ -1,0 +1,53 @@
+title: Cron Persistence Written Outside Package Management
+id: a13f7d52-6e08-4b91-9c47-2d85f0a6b3e1
+status: experimental
+description: >
+  Detects a cron entry being created that invokes a network client or an interpreter. Package
+  managers install cron jobs too, so the payload rather than the write is what makes this
+  interesting.
+references:
+  - https://attack.mitre.org/techniques/T1053/003/
+author: Kamil Mete Yalcinkaya
+date: 2026/09/09
+logsource:
+  product: linux
+  category: process_creation
+detection:
+  selection_crontab:
+    process.command_line|contains:
+      - 'crontab -'
+      - '/etc/cron.d/'
+      - '/var/spool/cron/'
+  selection_payload:
+    process.command_line|contains:
+      - curl
+      - wget
+      - /dev/tcp/
+      - base64
+      - python
+      - perl
+      - 'bash -i'
+  filter_package_manager:
+    process.parent.name:
+      - dpkg
+      - apt
+      - rpm
+      - yum
+      - dnf
+  condition: selection_crontab and selection_payload and not filter_package_manager
+fields:
+  - process.command_line
+  - process.parent.name
+  - user.name
+investigation:
+  - Read the full cron entry and resolve what it executes.
+  - Check the file modification time of the crontab against the process timestamp.
+  - Determine whether a configuration management agent was the parent.
+  - Look for the same entry on comparable hosts.
+falsepositives:
+  - Configuration management such as Ansible or Puppet writing cron entries. Filter on the parent
+    process of the automation agent.
+level: medium
+tags:
+  - attack.persistence
+  - attack.t1053.003

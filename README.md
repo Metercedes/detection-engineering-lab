@@ -11,9 +11,14 @@ it must not match, and a test that enforces both.
 
 ```
 $ sigmatch hunt telemetry/true_positive/powershell_encoded_command.jsonl
+[         high] 2026-03-02T09:15:00Z  Office Application Spawning a Script Interpreter
+                  powershell.exe -nop -w hidden -enc SUVYKE5ldy1PYmplY3QgTmV0LldlYkNsaWVudCk=
 [         high] 2026-03-02T09:15:00Z  PowerShell Encoded Command Execution
                   powershell.exe -nop -w hidden -enc SUVYKE5ldy1PYmplY3QgTmV0LldlYkNsaWVudCk=
 ```
+
+Two rules fire on that first event, which is correct: the process was started by `winword.exe`,
+so it is both an encoded PowerShell command and an Office application spawning an interpreter.
 
 ## Running it
 
@@ -23,7 +28,7 @@ Python 3.11 or newer. No external services needed for the tests.
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
-pytest                      # 138 tests
+pytest                      # 139 tests
 sigmatch validate           # rules parse and carry required metadata
 sigmatch coverage           # ATT&CK coverage table
 sigmatch hunt telemetry/true_positive/reverse_shell_invocation.jsonl

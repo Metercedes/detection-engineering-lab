@@ -11,6 +11,7 @@ first property trivially, so a broad rule fails here rather than in production.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -126,3 +127,31 @@ class TestCorrelations:
             copy["@timestamp"] = f"2026-03-02T{9 + index:02d}:20:00Z"
             spread.append(copy)
         assert not evaluate_correlation(burst, self.BASE, spread)
+
+
+def test_readme_example_matches_real_output(capsys):
+    """The README quotes CLI output, so the quote has to stay true."""
+    from sigmatch.cli import main
+
+    # Only the severity-prefixed hunt lines, not markdown links.
+    severity_line = re.compile(r"^\[\s*(informational|low|medium|high|critical)\]")
+    readme = (ROOT / "README.md").read_text()
+    quoted = [line.strip() for line in readme.splitlines() if severity_line.match(line.strip())]
+    assert quoted, "README no longer shows example hunt output"
+
+    main(
+        [
+            "--detections",
+            str(DETECTIONS),
+            "hunt",
+            str(TELEMETRY / "true_positive" / "powershell_encoded_command.jsonl"),
+        ]
+    )
+    produced = capsys.readouterr().out
+
+    position = -1
+    for line in quoted:
+        found = produced.find(line)
+        assert found != -1, f"README line absent from real output: {line}"
+        assert found > position, f"README line out of order: {line}"
+        position = found
